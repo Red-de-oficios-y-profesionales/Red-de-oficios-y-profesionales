@@ -225,8 +225,10 @@
           <div class="msg err" id="err-prov">Elegí tu provincia.</div>
         </div>
         <div>
-          <input type="text" id="localidad" name="localidad" list="loc-list" placeholder="Localidad…" disabled autocomplete="off">
-          <datalist id="loc-list"></datalist>
+          <select id="localidad-sel" name="localidad" disabled aria-label="Localidad">
+            <option value="">Elegí primero la provincia…</option>
+          </select>
+          <input type="text" id="localidad-txt" placeholder="Escribí tu localidad…" autocomplete="off" style="display:none">
           <div class="msg err" id="err-loc">Indicá tu localidad.</div>
         </div>
       </div>
@@ -410,31 +412,44 @@ otroInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault()
 /* ====== PROVINCIAS / LOCALIDADES ====== */
 const provSel=document.getElementById('provincia');
 PROVINCIAS.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;provSel.appendChild(o);});
-const locInput=document.getElementById('localidad');
-const locList=document.getElementById('loc-list');
-let locTimer=null;
-provSel.addEventListener('change',()=>{
-  locInput.value=''; locList.innerHTML='';
-  locInput.disabled = !provSel.value;
-  locInput.placeholder = provSel.value ? 'Empezá a escribir tu localidad…' : 'Localidad…';
-  if(provSel.value) document.getElementById('err-prov').classList.remove('show');
-});
-locInput.addEventListener('input',()=>{
-  const q=locInput.value.trim();
-  if(q) document.getElementById('err-loc').classList.remove('show');
-  clearTimeout(locTimer);
-  if(q.length<2 || !provSel.value) return;
-  locTimer=setTimeout(()=>fetchLocalidades(provSel.value,q),250);
-});
-async function fetchLocalidades(prov,q){
+const provErr=document.getElementById('err-prov');
+const locSel=document.getElementById('localidad-sel');
+const locTxt=document.getElementById('localidad-txt');
+const errLoc=document.getElementById('err-loc');
+
+function getLocalidad(){
+  return (locTxt.style.display!=='none') ? locTxt.value.trim() : locSel.value.trim();
+}
+function usarTextoLibre(){ locSel.style.display='none'; locTxt.style.display=''; locTxt.disabled=false; }
+function usarDesplegable(){ locTxt.style.display='none'; locSel.style.display=''; }
+
+provSel.addEventListener('change',async ()=>{
+  errLoc.classList.remove('show');
+  if(provSel.value) provErr.classList.remove('show');
+  locTxt.value='';
+  if(!provSel.value){
+    usarDesplegable(); locSel.disabled=true;
+    locSel.innerHTML='<option value="">Elegí primero la provincia…</option>';
+    return;
+  }
+  usarDesplegable(); locSel.disabled=true;
+  locSel.innerHTML='<option value="">Cargando localidades…</option>';
   try{
-    const url=`https://apis.datos.gob.ar/georef/api/localidades?provincia=${encodeURIComponent(prov)}&nombre=${encodeURIComponent(q)}&campos=nombre&max=10&orden=nombre`;
+    const url=`https://apis.datos.gob.ar/georef/api/localidades?provincia=${encodeURIComponent(provSel.value)}&campos=nombre&max=5000&orden=nombre`;
     const r=await fetch(url); if(!r.ok) throw 0;
     const data=await r.json();
-    locList.innerHTML='';
-    (data.localidades||[]).forEach(l=>{const o=document.createElement('option');o.value=l.nombre;locList.appendChild(o);});
-  }catch(e){ /* Si la API no responde, el campo queda como texto libre. */ }
-}
+    const nombres=[...new Set((data.localidades||[]).map(l=>l.nombre))].sort((a,b)=>a.localeCompare(b,'es'));
+    if(!nombres.length) throw 0;
+    locSel.innerHTML='<option value="">Elegí tu localidad…</option>'+
+      nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('');
+    locSel.disabled=false;
+  }catch(e){
+    // Si la API no responde, pasamos a texto libre para no trabar la carga.
+    usarTextoLibre();
+  }
+});
+locSel.addEventListener('change',()=>{ if(locSel.value) errLoc.classList.remove('show'); });
+locTxt.addEventListener('input',()=>{ if(locTxt.value.trim()) errLoc.classList.remove('show'); });
 
 /* ====== WHATSAPP ====== */
 const wa=document.getElementById('wa');
@@ -535,7 +550,7 @@ form.addEventListener('submit',e=>{
   if(!validateWa(true)){ ok=false; }
 
   if(!provSel.value){ document.getElementById('err-prov').classList.add('show'); ok=false; }
-  if(!locInput.value.trim()){ document.getElementById('err-loc').classList.add('show'); ok=false; }
+  if(!getLocalidad()){ document.getElementById('err-loc').classList.add('show'); ok=false; }
 
   const consent=document.getElementById('consent');
   if(!consent.checked){ document.getElementById('err-consent').classList.add('show'); ok=false; }
@@ -554,7 +569,7 @@ form.addEventListener('submit',e=>{
     servicios:[...state.servicios, ...state.custom],
     whatsapp:normalizeWa(wa.value),
     provincia:provSel.value,
-    localidad:locInput.value.trim(),
+    localidad:getLocalidad(),
     barrio:document.getElementById('barrio').value.trim()||null,
     correo:state.email||null,
     consentimiento:true,
@@ -610,7 +625,7 @@ document.getElementById('again').onclick=()=>{
   gmailOk.classList.remove('show'); gbtn.style.display='flex';
   orSep.style.display='flex'; correoInput.style.display=''; correoInput.classList.remove('ok','bad');
   okCorreo.classList.remove('show'); errCorreo.classList.remove('show');
-  locInput.disabled=true; locInput.placeholder='Localidad…'; locList.innerHTML='';
+  usarDesplegable(); locSel.disabled=true; locSel.innerHTML='<option value="">Elegí primero la provincia…</option>'; locTxt.value='';
   wa.classList.remove('ok','bad'); okWa.classList.remove('show');
   document.querySelectorAll('.msg').forEach(m=>m.classList.remove('show'));
   refreshServicios();
