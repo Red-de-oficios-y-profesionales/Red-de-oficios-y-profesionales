@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sumate a la red — Alta de servicios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Identity Services (para "Continuar con Google" en producción) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --base:#FCFCFB; --ink:#17201E; --muted:#5B6763; --line:#E3E6E3;
+    --pine:#10514A; --pine-dark:#0B3B36; --pine-tint:#E7F0EE;
+    --ochre:#DE9A2E; --ochre-tint:#FBF1DC;
+    --danger:#B23B2E; --danger-tint:#FBEDEA;
+    --radius:14px; --radius-sm:10px;
+    --shadow:0 1px 2px rgba(20,32,29,.04), 0 8px 24px rgba(20,32,29,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--base); color:var(--ink);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:600px;margin:0 auto;padding:24px 18px 80px}
+
+  header.page{padding:14px 2px 26px}
+  header.page .kicker{display:inline-flex;align-items:center;gap:8px;color:var(--pine);
+    font-weight:600;font-size:.86rem;margin-bottom:10px}
+  header.page .kicker .dot{width:9px;height:9px;border-radius:50%;background:var(--ochre)}
+  header.page h1{font-size:1.72rem;line-height:1.12;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+  header.page p{color:var(--muted);margin:0;font-size:1rem;max-width:48ch}
+
+  form{display:flex;flex-direction:column;gap:18px}
+  .field{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 16px 18px;box-shadow:var(--shadow)}
+  .field > label.q, .field > .q{display:block;font-weight:700;font-size:1.02rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.9rem;margin:2px 0 12px}
+  .req{color:var(--pine);font-weight:700}
+  .opt{color:var(--muted);font-weight:500;font-size:.85rem}
+
+  input[type=text],input[type=email],select{
+    width:100%;font:inherit;color:var(--ink);background:#fff;
+    border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 13px;transition:border-color .15s, box-shadow .15s}
+  input::placeholder{color:#9AA5A1}
+  input:focus,select:focus{outline:none;border-color:var(--pine);
+    box-shadow:0 0 0 3px var(--pine-tint)}
+  input.ok{border-color:var(--ochre);box-shadow:0 0 0 3px var(--ochre-tint)}
+  input.bad{border-color:var(--danger);box-shadow:0 0 0 3px var(--danger-tint)}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235B6763' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+  select:disabled{background-color:#F4F5F4;color:#9AA5A1;cursor:not-allowed}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:460px){.row2{grid-template-columns:1fr}}
+  .msg{font-size:.85rem;margin-top:7px;display:none}
+  .msg.show{display:block}
+  .msg.good{color:var(--pine)}
+  .msg.err{color:var(--danger)}
+
+  /* Servicios */
+  .svc-search{position:relative;margin-bottom:12px}
+  .svc-search input{padding-left:40px}
+  .svc-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9AA5A1}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+  .chips:empty{display:none}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--pine);color:#fff;
+    border-radius:999px;padding:6px 8px 6px 12px;font-size:.86rem;font-weight:600}
+  .chip.custom{background:var(--ochre-tint);color:var(--pine-dark);border:1.5px solid var(--ochre)}
+  .chip button{all:unset;cursor:pointer;display:grid;place-items:center;width:18px;height:18px;
+    border-radius:50%;background:rgba(255,255,255,.22);font-size:14px;line-height:1}
+  .chip.custom button{background:rgba(222,154,46,.25);color:var(--pine-dark)}
+  .count{font-size:.82rem;color:var(--muted);margin-bottom:10px}
+  .count b{color:var(--pine)}
+
+  .rubro{border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden}
+  .rubro summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;
+    align-items:center;justify-content:space-between;gap:10px;font-weight:600;user-select:none}
+  .rubro summary::-webkit-details-marker{display:none}
+  .rubro summary:hover{background:#FAFBFA}
+  .rubro summary .n{font-size:.78rem;color:var(--muted);font-weight:500}
+  .rubro summary .chev{transition:transform .18s;color:var(--muted)}
+  .rubro[open] summary .chev{transform:rotate(180deg)}
+  .rubro summary .badge{background:var(--pine);color:#fff;border-radius:999px;
+    font-size:.72rem;font-weight:700;padding:1px 7px;margin-left:auto;display:none}
+  .rubro.has-sel summary .badge{display:inline-block}
+  .rubro .items{padding:4px 8px 10px;border-top:1px solid var(--line)}
+  .opt-row{display:flex;align-items:flex-start;gap:10px;padding:8px 8px;border-radius:8px;cursor:pointer}
+  .opt-row:hover{background:var(--pine-tint)}
+  .opt-row input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pine);flex:none;cursor:pointer}
+  .opt-row span{font-size:.96rem}
+  .no-results{color:var(--muted);font-size:.9rem;padding:10px 6px;display:none}
+
+  .otro-box{margin-top:10px;padding-top:12px;border-top:1px dashed var(--line);display:none}
+  .otro-box.show{display:block}
+  .otro-add{display:flex;gap:8px;margin-top:8px}
+  .otro-add button{flex:none;background:var(--pine);color:#fff;border:none;border-radius:var(--radius-sm);
+    padding:0 16px;font:inherit;font-weight:600;cursor:pointer}
+  .otro-add button:hover{background:var(--pine-dark)}
+
+  /* Google / correo */
+  .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    background:#fff;border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px;font:inherit;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s}
+  .gbtn:hover{border-color:#c9cfcc;background:#FAFBFA}
+  .gmail-ok{display:none;align-items:center;gap:10px;background:var(--pine-tint);
+    border:1.5px solid var(--pine);border-radius:var(--radius-sm);padding:12px 13px;margin-top:4px}
+  .gmail-ok.show{display:flex}
+  .gmail-ok .em{font-weight:600;word-break:break-all}
+  .gmail-ok button{all:unset;cursor:pointer;color:var(--pine);font-weight:600;font-size:.85rem;margin-left:auto}
+  .or-sep{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.85rem;margin:14px 0}
+  .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* Consentimiento */
+  .consent{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+  .consent input{margin:2px 0 0;width:20px;height:20px;accent-color:var(--pine);flex:none;cursor:pointer}
+  .consent .txt{font-size:.94rem;color:var(--muted)}
+  .consent .txt b{color:var(--ink)}
+
+  .submit{background:var(--pine);color:#fff;border:none;border-radius:var(--radius);
+    padding:16px;font:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;
+    transition:background .15s;box-shadow:var(--shadow)}
+  .submit:hover{background:var(--pine-dark)}
+  .footnote{text-align:center;color:var(--muted);font-size:.82rem;margin-top:2px}
+
+  /* Resumen */
+  .done{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:var(--shadow);text-align:center}
+  .done .ic{width:56px;height:56px;border-radius:50%;background:var(--pine-tint);
+    display:grid;place-items:center;margin:0 auto 14px;color:var(--pine)}
+  .done h2{margin:0 0 6px;font-size:1.3rem}
+  .done p{color:var(--muted);margin:0 0 18px}
+  .summary{text-align:left;background:#FAFBFA;border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:14px 16px;font-size:.92rem}
+  .summary div{padding:7px 0;border-bottom:1px solid var(--line);display:flex;gap:12px;justify-content:space-between}
+  .summary div:last-child{border:0}
+  .summary .k{color:var(--muted);flex:none}
+  .summary .v{text-align:right;font-weight:600}
+  .again{margin-top:16px;background:none;border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:11px 18px;font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
+  .again:hover{border-color:var(--pine);color:var(--pine)}
+
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <div class="kicker"><span class="dot"></span> Red de oficios y profesiones</div>
+    <h1>Sumate a la red</h1>
+    <p>Dejá tus datos para que quien busque un servicio cerca pueda encontrarte y contactarte.</p>
+  </header>
+
+  <form id="form" novalidate>
+
+    <!-- Nombre -->
+    <div class="field">
+      <label class="q" for="nombre">Nombre y apellido <span class="req">*</span></label>
+      <div class="hint">Como querés que te vean en la red.</div>
+      <input type="text" id="nombre" name="nombre" placeholder="Ej: María González" autocomplete="name">
+      <div class="msg err" id="err-nombre">Escribí tu nombre y apellido.</div>
+    </div>
+
+    <!-- Servicios -->
+    <div class="field">
+      <div class="q">Servicio que brindás <span class="req">*</span></div>
+      <div class="hint">Podés tildar <b>varios</b>. Si no encontrás el tuyo, usá <b>“Otro”</b> al final y escribilo.</div>
+
+      <div class="svc-search">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="svc-search" placeholder="Buscar oficio o profesión…">
+      </div>
+
+      <div class="chips" id="chips"></div>
+      <div class="count" id="count">Ningún servicio seleccionado todavía.</div>
+
+      <div id="rubros"></div>
+      <div class="no-results" id="no-results">No encontramos ese oficio. Podés agregarlo en “Otro”, más abajo.</div>
+
+      <details class="rubro" id="otro-rubro">
+        <summary>
+          <span>Otro (no está en la lista)</span>
+          <span class="chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </summary>
+        <div class="items">
+          <label class="opt-row">
+            <input type="checkbox" id="otro-check">
+            <span>Mi oficio o profesión no aparece en la lista</span>
+          </label>
+          <div class="otro-box" id="otro-box">
+            <div class="hint" style="margin:0">Escribilo y tocá “Agregar”. Podés sumar más de uno.</div>
+            <div class="otro-add">
+              <input type="text" id="otro-input" placeholder="Ej: Afilador de cuchillos">
+              <button type="button" id="otro-add-btn">Agregar</button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="msg err" id="err-svc" style="margin-top:10px">Elegí al menos un servicio (o agregá el tuyo en “Otro”).</div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="field">
+      <label class="q" for="wa">WhatsApp <span class="req">*</span></label>
+      <div class="hint">Con código de área, sin el 0 ni el 15. Ej: <b>+54 9 379 412 3456</b></div>
+      <input type="text" id="wa" name="wa" inputmode="tel" placeholder="+54 9 379 412 3456" autocomplete="tel">
+      <div class="msg good" id="ok-wa"></div>
+      <div class="msg err" id="err-wa">Revisá el número: no parece un WhatsApp argentino válido.</div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="field">
+      <div class="q">Ubicación <span class="req">*</span></div>
+      <div class="hint">Para mostrarte a quien busca cerca tuyo.</div>
+      <div class="row2">
+        <div>
+          <select id="provincia" name="provincia" aria-label="Provincia">
+            <option value="">Provincia…</option>
+          </select>
+          <div class="msg err" id="err-prov">Elegí tu provincia.</div>
+        </div>
+        <div>
+          <input type="text" id="localidad" name="localidad" list="loc-list" placeholder="Localidad…" disabled autocomplete="off">
+          <datalist id="loc-list"></datalist>
+          <div class="msg err" id="err-loc">Indicá tu localidad.</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="q" for="barrio" style="font-size:.95rem">Barrio o zona <span class="opt">(opcional)</span></label>
+        <input type="text" id="barrio" name="barrio" placeholder="Ej: Villa Raquel, zona sur…" style="margin-top:8px">
+      </div>
+    </div>
+
+    <!-- Correo / Google -->
+    <div class="field">
+      <div class="q">Correo <span class="opt">(opcional)</span></div>
+      <div class="hint">Con Google es más rápido y queda verificado. También podés escribirlo o dejarlo en blanco.</div>
+      <button type="button" class="gbtn" id="gbtn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuar con Google
+      </button>
+      <div class="gmail-ok" id="gmail-ok">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10514A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span class="em" id="gmail-text"></span>
+        <button type="button" id="gmail-clear">Cambiar</button>
+      </div>
+      <div class="or-sep" id="or-sep"><span>o escribilo</span></div>
+      <input type="email" id="correo" name="correo" inputmode="email" placeholder="tucorreo@ejemplo.com" autocomplete="email">
+      <div class="msg good" id="ok-correo">✓ Correo válido</div>
+      <div class="msg err" id="err-correo">Ese correo no parece válido. Revisalo.</div>
+    </div>
+
+    <!-- Consentimiento -->
+    <div class="field">
+      <label class="consent">
+        <input type="checkbox" id="consent">
+        <span class="txt"><b>Autorizo</b> que mis datos (nombre, servicios, WhatsApp y zona) formen parte de la red y sean visibles para quienes buscan un servicio. <span class="req">*</span></span>
+      </label>
+      <div class="msg err" id="err-consent" style="margin-top:10px">Necesitamos tu autorización para sumarte.</div>
+    </div>
+
+    <button type="submit" class="submit">Sumarme a la red</button>
+    <div class="footnote">Los campos con <span class="req">*</span> son obligatorios.</div>
+  </form>
+
+  <!-- Pantalla de éxito -->
+  <div class="done" id="done" style="display:none">
+    <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <h2>¡Listo, ya estás en la red!</h2>
+    <p>Estos son los datos que se registraron:</p>
+    <div class="summary" id="summary"></div>
+    <button class="again" id="again">Cargar otra persona</button>
+  </div>
+
+</div>
+
+<script>
+/* ====== CONFIG GOOGLE ======
+   Para el login real: creá un OAuth Client ID (tipo "Web") en Google Cloud,
+   agregá el dominio donde publiques la app en "Orígenes de JavaScript autorizados",
+   y pegá el Client ID acá abajo. Mientras esté vacío, el botón funciona en MODO PRUEBA
+   (te pide el mail a mano) para que puedas probar el resto del formulario. */
+const GOOGLE_CLIENT_ID = ""; // ej: "1234567890-abc.apps.googleusercontent.com"
+
+/* ====== CONFIG PLANILLA (Google Apps Script) ======
+   URL de la app web publicada desde tu planilla. Acá se guardan las altas. */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyeuM2x67YVJX50srzxFR4o4Qb8jscoChZ3YkMsUetY2OaGZEi91lVuMnEGeIOiTFqc-g/exec";
+
+/* ====== DATOS: oficios por rubro ====== */
+const RUBROS = {
+  "Construcción y obra":["Albañilería","Plomería","Gasista","Electricista","Pintura","Durlock (placa de yeso)","Herrería","Soldadura","Carpintería","Carpintería de aluminio","Colocación de pisos y cerámicos","Colocación de porcelanato","Yesería / revoques","Impermeabilización","Techista / zinguería","Vidriería","Cerrajería","Colocación de aberturas","Colocación de cielorrasos","Excavación / pozos","Arquitecto","Maestro mayor de obra","Ingeniero civil"],
+  "Climatización y electrónica":["Refrigeración","Aire acondicionado (instalación y service)","Reparación de electrodomésticos","Bobinado eléctrico","Reparación de PC","Reparación de celulares","Reparación de TV / electrónica","Instalación de cámaras de seguridad","Redes e informática","Instalación de paneles solares","Antenista (TV / internet)"],
+  "Automotor y transporte":["Mecánica automotor (nafta y diésel)","Mecánica de motos","Chapa y pintura","Electricista del automotor","Gomería","Lavadero de autos","Chofer (con carnet)","Fletes / mudanzas","Tornería / rectificación"],
+  "Hogar y mantenimiento":["Limpieza","Limpieza de tanques","Jardinería / parquización","Poda y tala de árboles","Fumigación / control de plagas","Destapaciones (cloacas / cañerías)","Colocación de cortinas","Tapicería","Restauración de muebles","Mantenimiento general (multioficio)","Piletas (mantenimiento)","Colocación de césped"],
+  "Estética, salud y cuidado":["Peluquería","Barbería","Manicura / pedicura","Cosmetología / estética facial","Depilación","Maquillaje profesional","Masajes / masoterapia","Enfermería","Cuidado de personas mayores","Cuidado de niños (niñera)","Acompañante terapéutico","Kinesiología","Nutrición","Podología","Entrenador personal"],
+  "Confección y textil":["Modista","Sastre","Bordado","Tapizado","Tejido / crochet"],
+  "Gastronomía y eventos":["Cocinero","Pastelería / repostería","Panadería","Catering","Mozo / camarero","Bartender","Fotografía","Filmación","DJ / sonido","Animación de eventos","Decoración de eventos","Alquiler de mobiliario para eventos"],
+  "Servicios profesionales":["Abogado","Contador","Escribano","Gestoría / trámites","Martillero / inmobiliaria","Diseño gráfico","Diseño web / desarrollo","Marketing digital / community manager","Traducción","Clases particulares","Clases de inglés","Clases de música","Psicología"],
+  "Comercio y otros":["Seguridad / vigilancia","Portería / encargado de edificio","Delivery / cadetería","Ayudante / medio oficial (varios rubros)"]
+};
+
+const PROVINCIAS = ["Buenos Aires","Ciudad Autónoma de Buenos Aires","Catamarca","Chaco","Chubut","Córdoba","Corrientes","Entre Ríos","Formosa","Jujuy","La Pampa","La Rioja","Mendoza","Misiones","Neuquén","Río Negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago del Estero","Tierra del Fuego","Tucumán"];
+
+/* ====== ESTADO ====== */
+const state = { servicios:new Set(), custom:[], email:"" };
+
+/* ====== RENDER RUBROS ====== */
+const rubrosEl = document.getElementById('rubros');
+Object.entries(RUBROS).forEach(([rubro, oficios], ri)=>{
+  const det = document.createElement('details');
+  det.className = 'rubro'; det.dataset.rubro = rubro;
+  const sum = document.createElement('summary');
+  sum.innerHTML = `<span>${rubro}</span>
+    <span class="badge" data-badge>0</span>
+    <span class="n">${oficios.length}</span>
+    <span class="chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>`;
+  det.appendChild(sum);
+  const items = document.createElement('div'); items.className='items';
+  oficios.forEach(of=>{
+    const id = 'of_'+ri+'_'+of.replace(/\W+/g,'');
+    const row = document.createElement('label');
+    row.className='opt-row'; row.dataset.name=of.toLowerCase();
+    row.innerHTML = `<input type="checkbox" value="${of}" id="${id}"><span>${of}</span>`;
+    row.querySelector('input').addEventListener('change',e=>{
+      if(e.target.checked) state.servicios.add(of); else state.servicios.delete(of);
+      refreshServicios();
+    });
+    items.appendChild(row);
+  });
+  det.appendChild(items);
+  rubrosEl.appendChild(det);
+});
+
+/* ====== CHIPS + CONTADOR ====== */
+const chipsEl=document.getElementById('chips');
+const countEl=document.getElementById('count');
+function refreshServicios(){
+  chipsEl.innerHTML='';
+  state.servicios.forEach(of=>{
+    const c=document.createElement('span'); c.className='chip';
+    c.innerHTML=`${of}<button type="button" aria-label="Quitar">×</button>`;
+    c.querySelector('button').onclick=()=>{
+      state.servicios.delete(of);
+      const cb=[...document.querySelectorAll('.opt-row input')].find(i=>i.value===of);
+      if(cb) cb.checked=false;
+      refreshServicios();
+    };
+    chipsEl.appendChild(c);
+  });
+  state.custom.forEach((of,idx)=>{
+    const c=document.createElement('span'); c.className='chip custom';
+    c.innerHTML=`${of}<button type="button" aria-label="Quitar">×</button>`;
+    c.querySelector('button').onclick=()=>{ state.custom.splice(idx,1); refreshServicios(); };
+    chipsEl.appendChild(c);
+  });
+  const total=state.servicios.size+state.custom.length;
+  countEl.innerHTML = total? `<b>${total}</b> ${total===1?'servicio seleccionado':'servicios seleccionados'}.` : 'Ningún servicio seleccionado todavía.';
+  document.querySelectorAll('.rubro[data-rubro]').forEach(det=>{
+    const n=[...det.querySelectorAll('.opt-row input')].filter(i=>i.checked).length;
+    det.classList.toggle('has-sel',n>0);
+    const b=det.querySelector('[data-badge]'); if(b) b.textContent=n;
+  });
+  if(total>0) document.getElementById('err-svc').classList.remove('show');
+}
+
+/* ====== BUSCADOR ====== */
+const search=document.getElementById('svc-search');
+const noRes=document.getElementById('no-results');
+search.addEventListener('input',()=>{
+  const q=search.value.trim().toLowerCase();
+  let anyVisible=false;
+  document.querySelectorAll('.rubro[data-rubro]').forEach(det=>{
+    let visibleInRubro=0;
+    det.querySelectorAll('.opt-row').forEach(row=>{
+      const hit = !q || row.dataset.name.includes(q);
+      row.style.display = hit?'flex':'none';
+      if(hit) visibleInRubro++;
+    });
+    det.style.display = visibleInRubro?'':'none';
+    if(q) det.open = visibleInRubro>0; else det.open=false;
+    if(visibleInRubro) anyVisible=true;
+  });
+  noRes.style.display = (q && !anyVisible)?'block':'none';
+});
+
+/* ====== OTRO ====== */
+const otroCheck=document.getElementById('otro-check');
+const otroBox=document.getElementById('otro-box');
+const otroInput=document.getElementById('otro-input');
+const otroAdd=document.getElementById('otro-add-btn');
+otroCheck.addEventListener('change',()=>{
+  otroBox.classList.toggle('show',otroCheck.checked);
+  if(otroCheck.checked) setTimeout(()=>otroInput.focus(),50);
+});
+function addCustom(){
+  const v=otroInput.value.trim();
+  if(!v) return;
+  if(!state.custom.some(x=>x.toLowerCase()===v.toLowerCase()) && !state.servicios.has(v))
+    state.custom.push(v);
+  otroInput.value=''; refreshServicios(); otroInput.focus();
+}
+otroAdd.addEventListener('click',addCustom);
+otroInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();addCustom();} });
+
+/* ====== PROVINCIAS / LOCALIDADES ====== */
+const provSel=document.getElementById('provincia');
+PROVINCIAS.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;provSel.appendChild(o);});
+const locInput=document.getElementById('localidad');
+const locList=document.getElementById('loc-list');
+let locTimer=null;
+provSel.addEventListener('change',()=>{
+  locInput.value=''; locList.innerHTML='';
+  locInput.disabled = !provSel.value;
+  locInput.placeholder = provSel.value ? 'Empezá a escribir tu localidad…' : 'Localidad…';
+  if(provSel.value) document.getElementById('err-prov').classList.remove('show');
+});
+locInput.addEventListener('input',()=>{
+  const q=locInput.value.trim();
+  if(q) document.getElementById('err-loc').classList.remove('show');
+  clearTimeout(locTimer);
+  if(q.length<2 || !provSel.value) return;
+  locTimer=setTimeout(()=>fetchLocalidades(provSel.value,q),250);
+});
+async function fetchLocalidades(prov,q){
+  try{
+    const url=`https://apis.datos.gob.ar/georef/api/localidades?provincia=${encodeURIComponent(prov)}&nombre=${encodeURIComponent(q)}&campos=nombre&max=10&orden=nombre`;
+    const r=await fetch(url); if(!r.ok) throw 0;
+    const data=await r.json();
+    locList.innerHTML='';
+    (data.localidades||[]).forEach(l=>{const o=document.createElement('option');o.value=l.nombre;locList.appendChild(o);});
+  }catch(e){ /* Si la API no responde, el campo queda como texto libre. */ }
+}
+
+/* ====== WHATSAPP ====== */
+const wa=document.getElementById('wa');
+const okWa=document.getElementById('ok-wa');
+const errWa=document.getElementById('err-wa');
+function normalizeWa(raw){
+  let d=(raw||'').replace(/[^\d]/g,'');
+  if(d.startsWith('54')) d=d.slice(2);
+  if(d.startsWith('9')) d=d.slice(1);
+  if(d.startsWith('0')) d=d.slice(1);
+  // quitar un '15' entre código de área (2 a 4 díg) y el número
+  if(d.length>10){
+    for(const len of [2,3,4]){
+      if(d.length===12 && d.slice(len,len+2)==='15'){ d=d.slice(0,len)+d.slice(len+2); break; }
+    }
+  }
+  return d;
+}
+function validateWa(show){
+  const d=normalizeWa(wa.value);
+  const valid = d.length===10;
+  wa.classList.toggle('ok',valid && wa.value.trim()!=='');
+  wa.classList.toggle('bad',!valid && show && wa.value.trim()!=='');
+  if(valid){
+    const pretty=`${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6)}`;
+    okWa.textContent=`✓ Guardaremos: ${pretty}`; okWa.classList.add('show'); errWa.classList.remove('show');
+  }else{
+    okWa.classList.remove('show');
+    if(show && wa.value.trim()!=='') errWa.classList.add('show');
+  }
+  return valid;
+}
+wa.addEventListener('input',()=>validateWa(false));
+wa.addEventListener('blur',()=>validateWa(true));
+
+/* ====== GOOGLE / CORREO ====== */
+const gbtn=document.getElementById('gbtn');
+const gmailOk=document.getElementById('gmail-ok');
+const gmailText=document.getElementById('gmail-text');
+const correoInput=document.getElementById('correo');
+const orSep=document.getElementById('or-sep');
+const okCorreo=document.getElementById('ok-correo');
+const errCorreo=document.getElementById('err-correo');
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+document.getElementById('gmail-clear').onclick=()=>{
+  state.email=''; gmailOk.classList.remove('show');
+  gbtn.style.display='flex'; orSep.style.display='flex'; correoInput.style.display='';
+};
+function setEmail(em){
+  state.email=em; gmailText.textContent=em; gmailOk.classList.add('show');
+  gbtn.style.display='none'; orSep.style.display='none'; correoInput.style.display='none';
+  correoInput.value=''; okCorreo.classList.remove('show'); errCorreo.classList.remove('show'); correoInput.classList.remove('ok','bad');
+}
+function decodeJwt(t){ try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return {}} }
+
+function validateCorreo(show){
+  const v=correoInput.value.trim();
+  if(v==='') { correoInput.classList.remove('ok','bad'); okCorreo.classList.remove('show'); errCorreo.classList.remove('show'); state.email=''; return true; }
+  const valid=EMAIL_RE.test(v);
+  correoInput.classList.toggle('ok',valid);
+  correoInput.classList.toggle('bad',!valid && show);
+  okCorreo.classList.toggle('show',valid);
+  errCorreo.classList.toggle('show',!valid && show);
+  state.email = valid ? v : '';
+  return valid;
+}
+correoInput.addEventListener('input',()=>validateCorreo(false));
+correoInput.addEventListener('blur',()=>validateCorreo(true));
+
+gbtn.addEventListener('click',()=>{
+  const configured = GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id;
+  if(configured){
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (resp)=>{ const p=decodeJwt(resp.credential); if(p.email) setEmail(p.email); }
+    });
+    google.accounts.id.prompt();
+  }else{
+    // MODO PRUEBA: sin Client ID configurado
+    const em=prompt("Modo prueba (sin login real de Google).\nEscribí un correo para simular:");
+    if(em && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) setEmail(em);
+    else if(em) alert("Ese correo no parece válido.");
+  }
+});
+
+/* ====== ENVÍO ====== */
+const form=document.getElementById('form');
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  let ok=true;
+  const nombre=document.getElementById('nombre');
+  if(nombre.value.trim().length<3){ document.getElementById('err-nombre').classList.add('show'); nombre.classList.add('bad'); ok=false; }
+  else { document.getElementById('err-nombre').classList.remove('show'); nombre.classList.remove('bad'); }
+
+  if(state.servicios.size+state.custom.length===0){ document.getElementById('err-svc').classList.add('show'); ok=false; }
+
+  if(!validateWa(true)){ ok=false; }
+
+  if(!provSel.value){ document.getElementById('err-prov').classList.add('show'); ok=false; }
+  if(!locInput.value.trim()){ document.getElementById('err-loc').classList.add('show'); ok=false; }
+
+  const consent=document.getElementById('consent');
+  if(!consent.checked){ document.getElementById('err-consent').classList.add('show'); ok=false; }
+  else { document.getElementById('err-consent').classList.remove('show'); }
+
+  if(!validateCorreo(true)){ ok=false; }
+
+  if(!ok){
+    const firstErr=document.querySelector('.msg.err.show');
+    if(firstErr) firstErr.closest('.field').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const payload={
+    nombre:nombre.value.trim(),
+    servicios:[...state.servicios, ...state.custom],
+    whatsapp:normalizeWa(wa.value),
+    provincia:provSel.value,
+    localidad:locInput.value.trim(),
+    barrio:document.getElementById('barrio').value.trim()||null,
+    correo:state.email||null,
+    consentimiento:true,
+    fecha:new Date().toISOString()
+  };
+  guardar(payload);
+});
+
+async function guardar(payload){
+  const btn=document.querySelector('.submit');
+  const prev=btn.textContent;
+  btn.disabled=true; btn.textContent='Guardando…'; btn.style.opacity=.7;
+  try{
+    // Apps Script no devuelve cabeceras CORS, por eso usamos 'no-cors':
+    // el dato se guarda igual aunque no podamos leer la respuesta.
+    await fetch(SHEET_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    mostrarResumen(payload);
+  }catch(err){
+    btn.disabled=false; btn.textContent=prev; btn.style.opacity=1;
+    alert('No pudimos guardar los datos. Revisá tu conexión e intentá de nuevo.');
+  }
+}
+
+function mostrarResumen(payload){
+  const s=document.getElementById('summary');
+  const rows=[
+    ['Nombre',payload.nombre],
+    ['Servicios',payload.servicios.join(', ')],
+    ['WhatsApp',payload.whatsapp],
+    ['Provincia',payload.provincia],
+    ['Localidad',payload.localidad],
+    ['Barrio/Zona',payload.barrio||'—'],
+    ['Correo',payload.correo||'—']
+  ];
+  s.innerHTML=rows.map(([k,v])=>`<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  form.style.display='none';
+  document.getElementById('done').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('again').onclick=()=>{
+  form.reset();
+  const btn=document.querySelector('.submit');
+  btn.disabled=false; btn.textContent='Sumarme a la red'; btn.style.opacity=1;
+  state.servicios.clear(); state.custom=[]; state.email='';
+  document.querySelectorAll('.opt-row input').forEach(i=>i.checked=false);
+  otroBox.classList.remove('show');
+  gmailOk.classList.remove('show'); gbtn.style.display='flex';
+  orSep.style.display='flex'; correoInput.style.display=''; correoInput.classList.remove('ok','bad');
+  okCorreo.classList.remove('show'); errCorreo.classList.remove('show');
+  locInput.disabled=true; locInput.placeholder='Localidad…'; locList.innerHTML='';
+  wa.classList.remove('ok','bad'); okWa.classList.remove('show');
+  document.querySelectorAll('.msg').forEach(m=>m.classList.remove('show'));
+  refreshServicios();
+  document.getElementById('done').style.display='none';
+  form.style.display='flex';
+};
+
+refreshServicios();
+</script>
+</body>
+</html>
