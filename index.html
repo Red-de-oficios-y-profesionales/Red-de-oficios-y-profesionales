@@ -261,7 +261,7 @@
     <div class="field">
       <label class="consent">
         <input type="checkbox" id="consent">
-        <span class="txt"><b>Autorizo</b> que mis datos (nombre, servicios, WhatsApp y zona) formen parte de la red y sean visibles para quienes buscan un servicio. <span class="req">*</span></span>
+        <span class="txt"><b>Autorizo</b> que mis datos formen parte de la red y sean visibles para quienes buscan un servicio. <span class="req">*</span></span>
       </label>
       <div class="msg err" id="err-consent" style="margin-top:10px">Necesitamos tu autorización para sumarte.</div>
     </div>
@@ -507,6 +507,8 @@ function setEmail(em){
 function decodeJwt(t){ try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return {}} }
 
 function validateCorreo(show){
+  // Si el correo vino de Google, ya está tomado: no lo tocamos.
+  if(gmailOk.classList.contains('show')) return true;
   const v=correoInput.value.trim();
   if(v==='') { correoInput.classList.remove('ok','bad'); okCorreo.classList.remove('show'); errCorreo.classList.remove('show'); state.email=''; return true; }
   const valid=EMAIL_RE.test(v);
