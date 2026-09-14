@@ -144,6 +144,55 @@
   .again:hover{border-color:var(--pine);color:var(--pine)}
 
   @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ====== ADMIN ====== */
+  #admin{display:none;position:fixed;inset:0;background:var(--base);z-index:1000;overflow-y:auto}
+  #admin.show{display:block}
+  .adm-wrap{max-width:720px;margin:0 auto;padding:20px 18px 80px}
+  .adm-top{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 18px}
+  .adm-top h1{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.02em}
+  .adm-close{all:unset;cursor:pointer;color:var(--muted);font-weight:600;font-size:.9rem;border:1.5px solid var(--line);border-radius:8px;padding:7px 12px}
+  .adm-close:hover{border-color:var(--pine);color:var(--pine)}
+  .gate{max-width:360px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);text-align:center}
+  .gate h2{margin:0 0 6px;font-size:1.15rem}
+  .gate p{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+  .gate input{margin-bottom:10px}
+  .gate button{width:100%;background:var(--pine);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font:inherit;font-weight:700;cursor:pointer}
+  .gate button:hover{background:var(--pine-dark)}
+  .gate .err{color:var(--danger);font-size:.85rem;margin-top:8px;display:none}
+  .gate .err.show{display:block}
+  .tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:5px;margin-bottom:18px}
+  .tabs button{flex:1;all:unset;text-align:center;cursor:pointer;padding:10px;border-radius:8px;font-weight:600;font-size:.92rem;color:var(--muted)}
+  .tabs button.active{background:var(--pine);color:#fff}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+  .adm-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+  .otro-item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .otro-item .oficio{font-weight:700;font-size:1.05rem;color:var(--pine-dark)}
+  .otro-item .oficio .tag{background:var(--ochre-tint);color:#3d2b06;border:1.5px solid var(--ochre);border-radius:999px;font-size:.68rem;font-weight:700;padding:2px 8px;margin-left:8px;vertical-align:middle}
+  .otro-item .meta{color:var(--muted);font-size:.88rem;line-height:1.7}
+  .otro-item .meta b{color:var(--ink);font-weight:600}
+  .otro-item .add-cat{all:unset;cursor:pointer;color:var(--pine);font-weight:600;font-size:.85rem;border:1.5px solid var(--pine);border-radius:8px;padding:6px 10px;white-space:nowrap}
+  .otro-item .add-cat:hover{background:var(--pine-tint)}
+  .otro-wa{color:var(--wa-dark,#128C7E);text-decoration:none;font-weight:600}
+  .ed-rubro{border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden}
+  .ed-rubro .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#FAFBFA;border-bottom:1px solid var(--line)}
+  .ed-rubro .hd .nm{font-weight:700}
+  .ed-rubro .hd .del-r{all:unset;cursor:pointer;color:var(--danger);font-size:.8rem;font-weight:600}
+  .ed-body{padding:10px 12px}
+  .ed-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .ed-chip{display:inline-flex;align-items:center;gap:6px;background:var(--pine-tint);color:var(--pine-dark);border-radius:999px;padding:4px 8px 4px 11px;font-size:.85rem;font-weight:600}
+  .ed-chip button{all:unset;cursor:pointer;width:16px;height:16px;display:grid;place-items:center;border-radius:50%;background:rgba(16,81,74,.15)}
+  .ed-add{display:flex;gap:8px}
+  .ed-add input{flex:1}
+  .ed-add button,.new-rubro button,.gen-btn{background:var(--pine);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 14px;font:inherit;font-weight:600;cursor:pointer}
+  .ed-add button:hover,.new-rubro button:hover,.gen-btn:hover{background:var(--pine-dark)}
+  .new-rubro{display:flex;gap:8px;margin:14px 0}
+  .new-rubro input{flex:1}
+  .gen-btn{width:100%;padding:14px;font-size:1rem;margin-top:6px}
+  .code-out{width:100%;min-height:160px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px;margin-top:12px;white-space:pre;overflow:auto}
+  .copy-btn{background:var(--ochre);color:#3d2b06;border:none;border-radius:var(--radius-sm);padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;margin-top:8px}
+  .adm-note{background:var(--ochre-tint);border:1px solid var(--ochre);border-radius:var(--radius-sm);padding:12px 14px;font-size:.88rem;color:#3d2b06;margin-bottom:16px}
 </style>
 </head>
 <body>
@@ -279,6 +328,54 @@
     <button class="again" id="again">Cargar otra persona</button>
   </div>
 
+</div>
+
+<!-- ====== SECTOR ADMIN (se abre con #admin en la URL) ====== -->
+<div id="admin">
+  <div class="adm-wrap">
+
+    <!-- Puerta con clave -->
+    <div class="gate" id="gate">
+      <h2>Panel de administración</h2>
+      <p>Ingresá la clave para continuar.</p>
+      <input type="password" id="gate-pass" placeholder="Clave">
+      <button id="gate-btn">Entrar</button>
+      <div class="err" id="gate-err">Clave incorrecta.</div>
+    </div>
+
+    <!-- Contenido admin -->
+    <div id="adm-content" style="display:none">
+      <div class="adm-top">
+        <h1>Administración</h1>
+        <button class="adm-close" id="adm-close">✕ Salir</button>
+      </div>
+
+      <div class="tabs">
+        <button data-tab="otros" class="active">Oficios “Otro”</button>
+        <button data-tab="catalogo">Editar catálogo</button>
+      </div>
+
+      <!-- TAB: Otros -->
+      <div class="tab-panel active" id="tab-otros">
+        <div class="adm-note">Estos son los oficios que la gente escribió en “Otro” y no están en el catálogo. Revisalos: si son válidos, agregalos en “Editar catálogo”; después corregí a mano el dato de la persona si hace falta.</div>
+        <div id="otros-list"></div>
+      </div>
+
+      <!-- TAB: Catálogo -->
+      <div class="tab-panel" id="tab-catalogo">
+        <div class="adm-note">Editá acá el catálogo. Cuando termines, tocá “Generar código”, copialo y pegalo reemplazando el bloque <b>const RUBROS = {…}</b> en <b>alta-red.html</b> y también en <b>buscar-red.html</b>. Después subí los dos a GitHub.</div>
+        <div id="ed-rubros"></div>
+        <div class="new-rubro">
+          <input type="text" id="new-rubro-name" placeholder="Nombre de un rubro nuevo…">
+          <button id="add-rubro-btn">+ Rubro</button>
+        </div>
+        <button class="gen-btn" id="gen-btn">Generar código para pegar en GitHub</button>
+        <textarea class="code-out" id="code-out" readonly style="display:none"></textarea>
+        <button class="copy-btn" id="copy-btn" style="display:none">Copiar código</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -636,6 +733,136 @@ document.getElementById('again').onclick=()=>{
 };
 
 refreshServicios();
+
+/* ==================== SECTOR ADMIN ==================== */
+/* CLAVE del panel — cambiala por la que quieras (Nivel 1: protección básica). */
+const ADMIN_PASS = "oficios2026";
+
+const admin=document.getElementById('admin');
+const gate=document.getElementById('gate');
+const admContent=document.getElementById('adm-content');
+const gatePass=document.getElementById('gate-pass');
+const gateErr=document.getElementById('gate-err');
+let admUnlocked=false;
+let CAT=null; // copia de trabajo del catálogo
+
+function abrirAdmin(){
+  admin.classList.add('show');
+  if(admUnlocked){ gate.style.display='none'; admContent.style.display='block'; }
+  else { gate.style.display='block'; admContent.style.display='none'; setTimeout(()=>gatePass.focus(),50); }
+}
+function cerrarAdmin(){ admin.classList.remove('show'); if(location.hash==='#admin') history.replaceState(null,'',location.pathname+location.search); }
+function chequearHash(){ if(location.hash==='#admin') abrirAdmin(); else admin.classList.remove('show'); }
+window.addEventListener('hashchange',chequearHash);
+
+document.getElementById('gate-btn').addEventListener('click',intentarEntrar);
+gatePass.addEventListener('keydown',e=>{ if(e.key==='Enter') intentarEntrar(); });
+function intentarEntrar(){
+  if(gatePass.value===ADMIN_PASS){
+    admUnlocked=true; gateErr.classList.remove('show');
+    gate.style.display='none'; admContent.style.display='block';
+    CAT=JSON.parse(JSON.stringify(RUBROS));
+    renderEditor(); cargarOtros();
+  } else { gateErr.classList.add('show'); }
+}
+document.getElementById('adm-close').addEventListener('click',cerrarAdmin);
+
+document.querySelectorAll('.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+  });
+});
+
+function catalogoPlano(){ const set=new Set(); Object.values(RUBROS).forEach(a=>a.forEach(o=>set.add(o.toLowerCase()))); return set; }
+function cargarOtros(){
+  const cont=document.getElementById('otros-list');
+  cont.innerHTML='<div class="adm-card" style="text-align:center;color:#5B6763">Cargando…</div>';
+  const cb='__otros_'+Date.now();
+  const timer=setTimeout(()=>{ delete window[cb]; cont.innerHTML='<div class="adm-card">No se pudo leer la planilla. Revisá que el script tenga la función de lectura (doGet) publicada.</div>'; },12000);
+  window[cb]=function(data){
+    clearTimeout(timer); delete window[cb]; s.remove();
+    const base=catalogoPlano();
+    const items=[];
+    (Array.isArray(data)?data:[]).forEach(p=>{
+      (p.servicios||[]).forEach(of=>{ if(!base.has(String(of).toLowerCase())) items.push({oficio:of,persona:p}); });
+    });
+    items.reverse();
+    if(!items.length){ cont.innerHTML='<div class="adm-card" style="text-align:center;color:#5B6763">No hay oficios “Otro” pendientes. 🎉</div>'; return; }
+    cont.innerHTML=items.map(it=>{
+      const p=it.persona;
+      const loc=[p.localidad,p.provincia].filter(Boolean).join(', ');
+      const wa=String(p.whatsapp||'').replace(/[^\d]/g,'');
+      const waLink=wa?`<a class="otro-wa" href="https://wa.me/549${wa}" target="_blank" rel="noopener">${escA(p.whatsapp)}</a>`:'—';
+      return `<div class="adm-card otro-item">
+        <div class="top">
+          <div class="oficio">${escA(it.oficio)}<span class="tag">OTRO</span></div>
+          <button class="add-cat" data-oficio="${escA(it.oficio)}">+ Agregar al catálogo</button>
+        </div>
+        <div class="meta"><b>${escA(p.nombre||'—')}</b><br>WhatsApp: ${waLink}<br>Zona: ${escA(loc||'—')}${p.barrio?' · '+escA(p.barrio):''}${p.correo?'<br>Correo: '+escA(p.correo):''}</div>
+      </div>`;
+    }).join('');
+    cont.querySelectorAll('.add-cat').forEach(btn=>{
+      btn.addEventListener('click',()=>{ document.querySelector('.tabs button[data-tab="catalogo"]').click(); prefillNuevoOficio(btn.dataset.oficio); });
+    });
+  };
+  const s=document.createElement('script');
+  s.src=SHEET_URL+'?callback='+cb+'&t='+Date.now();
+  s.onerror=()=>{ clearTimeout(timer); delete window[cb]; cont.innerHTML='<div class="adm-card">No se pudo leer la planilla.</div>'; };
+  document.body.appendChild(s);
+}
+function escA(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function renderEditor(){
+  const cont=document.getElementById('ed-rubros');
+  cont.innerHTML=Object.keys(CAT).map((rubro,ri)=>{
+    const chips=CAT[rubro].map((of,oi)=>`<span class="ed-chip">${escA(of)}<button data-r="${ri}" data-o="${oi}" title="Quitar">×</button></span>`).join('');
+    return `<div class="ed-rubro">
+      <div class="hd"><span class="nm">${escA(rubro)}</span><button class="del-r" data-r="${ri}">Eliminar rubro</button></div>
+      <div class="ed-body">
+        <div class="ed-chips">${chips||'<span style="color:#5B6763;font-size:.85rem">Sin oficios</span>'}</div>
+        <div class="ed-add"><input type="text" placeholder="Agregar oficio a este rubro…" data-addr="${ri}"><button data-addbtn="${ri}">Agregar</button></div>
+      </div>
+    </div>`;
+  }).join('');
+  cont.querySelectorAll('.ed-chip button').forEach(b=>b.addEventListener('click',()=>{ const rubro=Object.keys(CAT)[+b.dataset.r]; CAT[rubro].splice(+b.dataset.o,1); renderEditor(); }));
+  cont.querySelectorAll('.del-r').forEach(b=>b.addEventListener('click',()=>{ const rubro=Object.keys(CAT)[+b.dataset.r]; if(confirm(`¿Eliminar el rubro "${rubro}" y todos sus oficios?`)){ delete CAT[rubro]; renderEditor(); } }));
+  cont.querySelectorAll('[data-addbtn]').forEach(b=>b.addEventListener('click',()=>{ const ri=+b.dataset.addbtn; const inp=cont.querySelector(`[data-addr="${ri}"]`); agregarOficio(Object.keys(CAT)[ri],inp.value); inp.value=''; }));
+  cont.querySelectorAll('[data-addr]').forEach(inp=>inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); agregarOficio(Object.keys(CAT)[+inp.dataset.addr],inp.value); inp.value=''; } }));
+  if(prefillPend){ const first=cont.querySelector('[data-addr]'); if(first){ first.value=prefillPend; first.focus(); } prefillPend=null; }
+}
+function agregarOficio(rubro,nombre){
+  const v=(nombre||'').trim(); if(!v||!CAT[rubro]) return;
+  if(!CAT[rubro].some(x=>x.toLowerCase()===v.toLowerCase())) CAT[rubro].push(v);
+  renderEditor();
+}
+document.getElementById('add-rubro-btn').addEventListener('click',()=>{
+  const inp=document.getElementById('new-rubro-name'); const v=inp.value.trim();
+  if(!v) return;
+  if(CAT[v]){ alert('Ese rubro ya existe.'); return; }
+  CAT[v]=[]; inp.value=''; renderEditor();
+});
+
+let prefillPend=null;
+function prefillNuevoOficio(oficio){ prefillPend=oficio; renderEditor(); }
+
+document.getElementById('gen-btn').addEventListener('click',()=>{
+  const lineas=Object.keys(CAT).map(r=>{ const arr=CAT[r].map(o=>JSON.stringify(o)).join(','); return `  ${JSON.stringify(r)}:[${arr}]`; }).join(',\n');
+  const code=`const RUBROS = {\n${lineas}\n};`;
+  const out=document.getElementById('code-out');
+  out.value=code; out.style.display='block';
+  document.getElementById('copy-btn').style.display='inline-block';
+  out.scrollIntoView({behavior:'smooth',block:'center'});
+});
+document.getElementById('copy-btn').addEventListener('click',()=>{
+  const out=document.getElementById('code-out'); out.select();
+  try{ navigator.clipboard.writeText(out.value); }catch(e){ document.execCommand('copy'); }
+  const b=document.getElementById('copy-btn'); const t=b.textContent; b.textContent='✓ Copiado'; setTimeout(()=>b.textContent=t,1500);
+});
+
+chequearHash();
 </script>
 </body>
 </html>
